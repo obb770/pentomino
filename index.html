@@ -7,28 +7,62 @@
   <meta name="apple-mobile-web-app-status-bar-style"
     content="black-translucent" />
   <title>Pentomino</title>
+  <style type="text/css">
+body {
+    font-size: 200%;
+    font-family: monospace;
+    text-align: center;
+}
+  </style>
  </head>
  <body>
+  <div id="width">
+   <label for="width3">3</label>
+   <input id="width3" type="radio" name="width"  />
+   <label for="width4">4</label>
+   <input id="width4" type="radio" name="width" />
+   <label for="width5">5</label>
+   <input id="width5" type="radio" name="width" />
+   <label for="width6">6</label>
+   <input id="width6" type="radio" name="width" />
+  </div>
   <div id="count"></div>
   <div id="solution"></div>
+  <div id="time"></div>
  </body>
  <script type="text/javascript">
 (function () {
-    var width = 3, worker;
-    if (location.search) {
-        if (location.search.substring(1, 7) === 'width=') {
-            width = parseInt(location.search.substring(7));
-        }
-    }
-    worker = new Worker('pm.js');
-    worker.onmessage = function (e) {
-        var solution = JSON.parse(e.data);
-        document.querySelector('#count').innerHTML =
-            '<pre>' + solution.count + ' ' + solution.time + '</pre>';
-        document.querySelector('#solution').innerHTML =
+    var width = 3, qs, slice, qsa, worker, onmessage, run;
+    qs = function (q) {return document.querySelector(q);};
+    slice = Array.prototype.slice;
+    qsa = function (q) {return slice.call(document.querySelectorAll(q));};
+    qsa('input[name="width"]').forEach(function (input) {
+        input.onclick = function () {
+            width = parseInt(qs('label[for="' + input.id + '"]').textContent);
+            run(width);
+        };
+    });
+    onmessage = function (e) {
+        var solution = JSON.parse(e.data), time;
+        qs('#count').innerHTML = '<pre>' + solution.count + '</pre>';
+        qs('#solution').innerHTML =
             '<pre>' + solution.lines.join('\n') + '</pre>';
+        time = String(solution.time);
+        if (time.length < 4) {
+            time = ('0000' + time).slice(-4);
+        }
+        time = time.slice(0, -3) + '.' + time.slice(-3);
+        qs('#time').innerHTML = '<pre>' + time + '</pre>';
     };
-    worker.postMessage(width);
+    run = function (width) {
+        if (worker) {
+            worker.terminate();
+            worker = null;
+        }
+        worker = new Worker('pm.js');
+        worker.onmessage = onmessage;
+        worker.postMessage(width);
+    };
 }());
  </script>
 </html>
