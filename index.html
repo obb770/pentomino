@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8"></meta>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent" />
+  <title>Pentomino</title>
+ </head>
+ <body>
+  <div id="count"></div>
+  <div id="solution"></div>
+ </body>
+ <script type="text/javascript">
+(function () {
+    var width = 3, worker;
+    if (location.search) {
+        if (location.search.substring(1, 7) === 'width=') {
+            width = parseInt(location.search.substring(7));
+        }
+    }
+    worker = new Worker('pm.js');
+    worker.onmessage = function (e) {
+        var solution = JSON.parse(e.data);
+        document.querySelector('#count').innerHTML =
+            '<pre>' + solution.count + ' ' + solution.time + '</pre>';
+        document.querySelector('#solution').innerHTML =
+            '<pre>' + solution.lines.join('\n') + '</pre>';
+    };
+    worker.postMessage(width);
+}());
+ </script>
+</html>
