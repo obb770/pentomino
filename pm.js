@@ -136,12 +136,11 @@ solve = function (size, width, callback) {
     }
     perm = [];
     for (i = 0; i < minos.length; i++) {
-        perm.push(i);
+        perm[i] = i;
     }
     count = 0;
-    iter = function (dep) {
-        var pos, n, m, place;
-        pos = 0;
+    iter = function (dep, pos) {
+        var n, m, i, o, p;
         while (pos < height * (width + 1) && board[pos] !== EMPTY) {
             pos++;
         }
@@ -149,25 +148,36 @@ solve = function (size, width, callback) {
             m = perm[n];
             perm[n] = perm[dep];
             perm[dep] = m;
-            minos[perm[dep]].forEach(function (o) {
-                if (o.every(function (p) {return board[pos + p] === EMPTY;})) {
-                    o.forEach(function (p) {board[pos + p] = m;});
-                    if (dep + 1 < minos.length) {
-                        iter(dep + 1);
+            for (i = 0; i < minos[m].length; i++) {
+                o = minos[m][i];
+                for (p = 0; p < o.length; p++) {
+                    if (board[pos + o[p]] !== EMPTY) {
+                        break;
                     }
-                    else {
-                        count++;
-                        callback(count, board, height);
-                    }
-                    o.forEach(function (p) {board[pos + p] = EMPTY;});
                 }
-            });
+                if (p < o.length) {
+                    continue;
+                }
+                for (p = 0; p < o.length; p++) {
+                    board[pos + o[p]] = m;
+                }
+                if (dep + 1 < minos.length) {
+                    iter(dep + 1, pos + 1);
+                }
+                else {
+                    count++;
+                    callback(count, board, height);
+                }
+                for (p = 0; p < o.length; p++) {
+                    board[pos + o[p]] = EMPTY;
+                }
+            }
             m = perm[n];
             perm[n] = perm[dep];
             perm[dep] = m;
         }
     };
-    iter(0);
+    iter(0, 0);
 };
 
 run = function (width, callback) {
