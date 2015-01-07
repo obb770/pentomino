@@ -9,9 +9,14 @@
   <title>Pentomino</title>
   <style type="text/css">
 body {
+    padding-top: 20px;
     font-size: 200%;
     font-family: monospace;
     text-align: center;
+}
+canvas {
+    margin: auto;
+    padding: 10px;
 }
   </style>
  </head>
@@ -32,21 +37,50 @@ body {
  </body>
  <script type="text/javascript">
 (function () {
-    var width = 3, qs, slice, qsa, worker, onmessage, run;
+    var width = 3, qs, slice, qsa, worker, onmessage, run,
+        mw, cw, ch, ctx;
     qs = function (q) {return document.querySelector(q);};
     slice = Array.prototype.slice;
     qsa = function (q) {return slice.call(document.querySelectorAll(q));};
     qsa('input[name="width"]').forEach(function (input) {
         input.onclick = function () {
+            var mh;
             width = parseInt(qs('label[for="' + input.id + '"]').textContent);
             run(width);
+            mw = Math.floor((window.innerWidth - 30) * width / 60);
+            mh = Math.floor((window.innerHeight - 30) / width);
+            if (mh < mw) {
+                mw = mh;
+            }
+            cw = mw * 60 / width + 2;
+            ch = mw * width + 2;
+            qs('#solution').innerHTML =
+                '<canvas width="' + cw + '" height="' + ch +
+                    '"></canvas>';
+            ctx = qs('canvas').getContext('2d');
         };
     });
     onmessage = function (e) {
-        var solution = JSON.parse(e.data), time;
+        var solution = JSON.parse(e.data), time, i, j, l = solution.lines;
         qs('#count').innerHTML = '<pre>' + solution.count + '</pre>';
-        qs('#solution').innerHTML =
-            '<pre>' + solution.lines.join('\n') + '</pre>';
+        qs('canvas').width = cw;
+        ctx.strokeRect(0, 0, cw, ch);
+        for (i = 0; i < l.length; i++) {
+            for (j = 0; j < l[i].length; j++) {
+                if (i === 0 || l[i][j] !== l[i - 1][j]) {
+                    ctx.fillRect(j * mw + 1, i * mw + 1, mw, 1);
+                }
+                if (i + 1 === l.length || l[i][j] !== l[i + 1][j]) {
+                    ctx.fillRect(j * mw + 1, (i + 1) * mw, mw, 1);
+                }
+                if (j === 0 || l[i][j] !== l[i][j - 1]) {
+                    ctx.fillRect(j * mw + 1, i * mw + 1, 1, mw);
+                }
+                if (j + 1 === l[i].length || l[i][j] !== l[i][j + 1]) {
+                    ctx.fillRect((j + 1) * mw, i * mw + 1, 1, mw);
+                }
+            }
+        }
         time = String(solution.time);
         if (time.length < 4) {
             time = ('0000' + time).slice(-4);
