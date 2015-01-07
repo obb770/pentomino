@@ -1,13 +1,8 @@
 (function () {
 'use strict';
 
-var log,
-    compare, normalize, uniquify, pieceKey, cmp, linearize, minoKey,
+var compare, normalize, uniquify, pieceKey, cmp, linearize, minoKey,
     grow, group, getMinos, solve, SIZE = 5, run;
-
-log = function (msg) {
-    console.log(msg);
-};
 
 compare = function (a, b) {
     var result = a.x - b.x;
