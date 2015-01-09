@@ -17,7 +17,6 @@ body {
 }
 canvas {
     margin: auto;
-    padding: 10px;
 }
   </style>
  </head>
@@ -48,8 +47,8 @@ canvas {
             var mh;
             width = parseInt(qs('label[for="' + input.id + '"]').textContent);
             run(width);
-            mw = Math.floor((window.innerWidth - 30) * width / 60);
-            mh = Math.floor((window.innerHeight - 30) / width);
+            mw = Math.floor((window.innerWidth - 100) * width / 60);
+            mh = Math.floor((window.innerHeight - 250) / width);
             if (mh < mw) {
                 mw = mh;
             }
