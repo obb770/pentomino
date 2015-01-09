@@ -192,11 +192,22 @@ run = function (width, callback) {
     });
 };
 
-onmessage = function (e) {
-    run(e.data, function (count, time, lines) {
-        postMessage(JSON.stringify(
-            {'count': count, 'time': time, 'lines': lines}));
-    });
-};
+if (typeof onmessage !== 'undefined') {
+    onmessage = function (e) {
+        run(e.data, function (count, time, lines) {
+            postMessage(JSON.stringify(
+                {'count': count, 'time': time, 'lines': lines}));
+        });
+    };
+}
+else if (typeof exports !== 'undefined') {
+    exports.run = run;
+    if (require.main === module) {
+        run(parseInt(process.argv[2] || '3'), function (count, time, lines) {
+            console.log(count, time);
+            console.log(lines.join('\n'));
+        });
+    }
+}
 
 }());
