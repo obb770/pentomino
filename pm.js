@@ -1,3 +1,4 @@
+// This JavaScript source code is placed in the public domain
 (function () {
 'use strict';
 
