@@ -132,7 +132,7 @@ getMinos = function (size, width) {
 };
 
 solve = function (size, width, callback) {
-    var minos, height, board, i, j, EMPTY, BLOCKED, perm, count, iter;
+    var minos, height, board, i, j, EMPTY, BLOCKED, perm, count, start, iter;
     minos = getMinos(size, width + 1);
     height = size * minos.length / width;
     EMPTY = -1;
@@ -149,6 +149,7 @@ solve = function (size, width, callback) {
         perm[i] = i;
     }
     count = 0;
+    start = Date.now();
     iter = function (dep, pos) {
         var n, m, i, o, p;
         while (pos < height * (width + 1) && board[pos] !== EMPTY) {
@@ -176,7 +177,7 @@ solve = function (size, width, callback) {
                 }
                 else {
                     count++;
-                    callback(count, board, height);
+                    callback(count, Date.now() - start, board, height);
                 }
                 for (p = 0; p < o.length; p++) {
                     board[pos + o[p]] = EMPTY;
@@ -191,8 +192,7 @@ solve = function (size, width, callback) {
 };
 
 run = function (width, callback) {
-    var start = Date.now();
-    solve(SIZE, width, function (count, board, height) {
+    solve(SIZE, width, function (count, time, board, height) {
         var i, j, line, lines, index, SYMBOL = '0123456789AB=';
         lines = [];
         for (j = 0; j < width; j++) {
@@ -203,7 +203,7 @@ run = function (width, callback) {
             }
             lines.push(line);
         }
-        callback(count, Date.now() - start, lines);
+        callback(count, time, lines);
     });
 };
 
