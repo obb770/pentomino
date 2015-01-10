@@ -2,10 +2,24 @@
 (function () {
 'use strict';
 
-var compare, normalize, uniquify, pieceKey, cmp, linearize, minoKey,
-    grow, group, getMinos, solve, SIZE = 5, run;
+var sort, coordCompare, normalize, uniquify, pieceKey, numCompare,
+    linearize, minoKey, grow, group, getMinos, solve, SIZE = 5, run;
 
-compare = function (a, b) {
+sort = function (array, cmp) {
+    cmp = cmp || function (a, b) {return a.localeCompare(b);}
+    array.map(function (val, index) {
+        return [val, index];
+    }).sort(function (a, b) {
+        return cmp(a[0], b[0]) || a[1] - b[1];
+    }).map(function (val) {
+        return val[0];
+    }).forEach(function (val, index) {
+        array[index] = val;
+    });
+    return array;
+};
+
+coordCompare = function (a, b) {
     var result = a.x - b.x;
     if (result === 0) {
         result = a.y - b.y;
@@ -27,9 +41,9 @@ normalize = function (mino) {
         }
         return base;
     });
-    return mino.map(function (val) {
+    return sort(mino.map(function (val) {
         return {'x': val.x - base.x, 'y': val.y - base.y};
-    }).sort(compare);
+    }), coordCompare);
 };
 
 uniquify = function (list, keyFunc) {
@@ -46,14 +60,14 @@ pieceKey = function (piece) {
     return JSON.stringify([piece.x, piece.y]);
 };
 
-cmp = function (a, b) {
+numCompare = function (a, b) {
     return a - b;
 };
 
 linearize = function (mino, width) {
-    return mino.map(function (piece) {
+    return sort(mino.map(function (piece) {
         return piece.x * width + piece.y;
-    }).sort(cmp).map(function (piece, index, array) {
+    }), numCompare).map(function (piece, index, array) {
         return piece - array[0];
     });
 };
@@ -91,7 +105,7 @@ group = function (minos) {
         return uniquify(g, minoKey);
     });
     return uniquify(groups, function (g) {
-        return g.map(minoKey).sort()[0];
+        return sort(g.map(minoKey))[0];
     });
 };
 
@@ -106,7 +120,7 @@ getMinos = function (size, width) {
     }
     minos = group(minos);
 
-    minos.sort(function (a, b) {return b.length - a.length;});
+    sort(minos, function (a, b) {return b.length - a.length;});
     minos[0] = [minos[0][0]];  // should be a group of 8
     minos[0].push(normalize(minos[0][0].map(function (p) {
         return {'x': p.y, 'y': p.x};
