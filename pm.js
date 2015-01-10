@@ -6,7 +6,7 @@ var sort, coordCompare, normalize, uniquify, pieceKey, numCompare,
     linearize, minoKey, grow, group, getMinos, solve, SIZE = 5, run;
 
 sort = function (array, cmp) {
-    cmp = cmp || function (a, b) {return a.localeCompare(b);}
+    cmp = cmp || function (a, b) {return a.localeCompare(b);};
     array.map(function (val, index) {
         return [val, index];
     }).sort(function (a, b) {
@@ -68,6 +68,7 @@ linearize = function (mino, width) {
     return sort(mino.map(function (piece) {
         return piece.x * width + piece.y;
     }), numCompare).map(function (piece, index, array) {
+        void index;
         return piece - array[0];
     });
 };
@@ -207,22 +208,29 @@ run = function (width, callback) {
     });
 };
 
-if (typeof onmessage !== 'undefined') {
-    onmessage = function (e) {
-        run(e.data, function (count, time, lines) {
-            postMessage(JSON.stringify(
-                {'count': count, 'time': time, 'lines': lines}));
-        });
-    };
+if (typeof self !== 'undefined') {
+    (function () {
+        // jshint worker:true
+        self.onmessage = function (e) {
+            run(e.data, function (count, time, lines) {
+                postMessage(JSON.stringify(
+                    {'count': count, 'time': time, 'lines': lines}));
+            });
+        };
+    }());
 }
 else if (typeof exports !== 'undefined') {
-    exports.run = run;
-    if (require.main === module) {
-        run(parseInt(process.argv[2] || '3'), function (count, time, lines) {
-            console.log(count, time);
-            console.log(lines.join('\n'));
-        });
-    }
+    (function () {
+        // jshint node:true
+        exports.run = run;
+        if (require.main === module) {
+            run(parseInt(process.argv[2] || '3'),
+                    function (count, time, lines) {
+                console.log(count, time);
+                console.log(lines.join('\n'));
+            });
+        }
+    }());
 }
 
 }());
