@@ -21,6 +21,7 @@ canvas {
   </style>
  </head>
  <body>
+  <div id="header"></div>
   <div id="width">
    <label for="width3">3</label>
    <input id="width3" type="radio" name="width"  />
@@ -39,13 +40,14 @@ canvas {
 (function () {
     /* jshint browser:true */
     'use strict';
-    var width = 3, qs, slice, qsa, worker, onmessage, run,
-        mw, cw, ch, ctx;
+    var width = 3, qs, slice, qsa, worker, draw, onmessage, run,
+        mw, cw, ch, ctx, solutions, cur;
     qs = function (q) {return document.querySelector(q);};
+    // qs('#header').innerHTML = String(Date());
     slice = Array.prototype.slice;
     qsa = function (q) {return slice.call(document.querySelectorAll(q));};
     qsa('input[name="width"]').forEach(function (input) {
-        input.onclick = function () {
+        input.addEventListener('click', function () {
             var mh;
             width = parseInt(qs('label[for="' + input.id + '"]').textContent);
             run(width);
@@ -60,10 +62,22 @@ canvas {
                 '<canvas width="' + cw + '" height="' + ch +
                     '"></canvas>';
             ctx = qs('canvas').getContext('2d');
-        };
+            qs('canvas').addEventListener('mousedown', function(e) {
+                var delta = 6 * e.offsetX / cw - 3, n = solutions.length;
+                if (delta > 0) {
+                    delta = Math.pow(10, Math.ceil(delta) - 1);
+                }
+                else if (delta < 0) {
+                    delta = -Math.pow(10, -Math.floor(delta) - 1);
+                }
+                e.preventDefault();
+                cur = (((cur + delta) % n) + n) % n;
+                draw(solutions[cur]);
+            }, false);
+        }, false);
     });
-    onmessage = function (e) {
-        var solution = JSON.parse(e.data), time, i, j, l = solution.lines;
+    draw = function (solution) {
+        var time, i, j, l = solution.lines;
         qs('#count').innerHTML = '<pre>' + solution.count + '</pre>';
         qs('canvas').width = cw;
         ctx.strokeRect(0, 0, cw, ch);
@@ -90,13 +104,20 @@ canvas {
         time = time.slice(0, -3) + '.' + time.slice(-3);
         qs('#time').innerHTML = '<pre>' + time + '</pre>';
     };
+    onmessage = function (e) {
+        solutions.push(e.data);
+        cur = solutions.length - 1;
+        draw(solutions[cur]);
+    };
     run = function (width) {
+        solutions = [];
+        cur = -1;
         if (worker) {
             worker.terminate();
             worker = null;
         }
         worker = new Worker('pm.js');
-        worker.onmessage = onmessage;
+        worker.addEventListener('message', onmessage, false);
         worker.postMessage(width);
     };
 }());

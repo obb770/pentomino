@@ -213,8 +213,7 @@ if (typeof self !== 'undefined') {
         // jshint worker:true
         self.onmessage = function (e) {
             run(e.data, function (count, time, lines) {
-                postMessage(JSON.stringify(
-                    {'count': count, 'time': time, 'lines': lines}));
+                postMessage({'count': count, 'time': time, 'lines': lines});
             });
         };
     }());
